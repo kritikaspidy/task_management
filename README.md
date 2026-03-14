@@ -86,7 +86,7 @@ npm install
 npm start
 ```
 
-### 3️⃣ Frontend Setup
+### 3. Frontend Setup
 ```text
 cd frontend
 npm install

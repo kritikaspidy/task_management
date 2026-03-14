@@ -16,7 +16,7 @@ Users can create and manage their own tasks, while admins can manage users and a
 - View tasks assigned to them
 
 ### Admin
-- View all tasks in the system
+- View and edit all tasks in the system
 - Assign tasks to users
 - View all users
 - Delete users
@@ -75,7 +75,7 @@ PATCH /admin/tasks/:id/assign
 
 ### 1. Clone Repository
 ```text
-git clone <your-repo-url>
+git clone https://github.com/kritikaspidy/primetrade.git
 cd project-folder
 ```
 

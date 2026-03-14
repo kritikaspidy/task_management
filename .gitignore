@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.*
+
+# logs
+logs
+*.log
+npm-debug.log*
+
+# build folders
+dist/
+build/
+
+# OS files
+.DS_Store
+
+# editor
+.vscode/
+.idea/
+
+# frontend build
+frontend/dist/
+
+# backend temp
+coverage/

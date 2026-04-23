@@ -9,7 +9,10 @@ const adminRoutes = require('./routes/adminroutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorhandler');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: "https://vercel.com/kritikas-projects-bb3a5330/primetrade/AbkAg7x2TZG1FVaHBwS6DsXTGvud",
+  credentials: true
+}));
 app.use(express.json());
 
 const port = process.env.PORT || 5000;

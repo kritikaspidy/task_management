@@ -38,9 +38,11 @@ Users can create and manage their own tasks, while admins can manage users and a
 - Express.js
 - PostgreSQL
 - JWT Authentication
+- Bcrypt
 
 ### Frontend
 - React (Vite)
+- Tailwind CSS
 
 ---
 

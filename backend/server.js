@@ -9,10 +9,7 @@ const adminRoutes = require('./routes/adminroutes');
 const { errorHandler, notFoundHandler } = require('./middleware/errorhandler');
 
 const app = express();
-app.use(cors({
-  origin: "https://primetrade-jade.vercel.app/",
-  credentials: true
-}));
+app.use(cors());
 app.use(express.json());
 
 const port = process.env.PORT || 5000;

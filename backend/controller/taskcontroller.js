@@ -1,9 +1,7 @@
-const { Op } = require('sequelize');
 const { Task } = require('../models');
 
 const createTask = async (req, res, next) => {
   const { title, description, status, priority, due_date } = req.body;
-
   const normalizedDueDate = due_date === '' ? null : due_date;
 
   try {
@@ -27,9 +25,9 @@ const createTask = async (req, res, next) => {
       description: description || null,
       status: status || 'pending',
       priority: priority || 'medium',
-      dueDate: normalizedDueDate,
-      createdBy: req.user.id,
-      assignedTo: req.user.id,
+      due_date: normalizedDueDate,
+      created_by: req.user.id,
+      assigned_to: req.user.id,
     });
 
     res.status(201).json({
@@ -43,12 +41,7 @@ const createTask = async (req, res, next) => {
 
 const getTasks = async (req, res, next) => {
   try {
-    const tasks = await Task.findAll({
-      where: {
-        [Op.or]: [{ createdBy: req.user.id }, { assignedTo: req.user.id }],
-      },
-      order: [['createdAt', 'DESC']],
-    });
+    const tasks = await Task.findByUser(req.user.id);
 
     res.status(200).json({
       message: 'Tasks fetched successfully',
@@ -63,12 +56,7 @@ const getTaskById = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const task = await Task.findOne({
-      where: {
-        id,
-        [Op.or]: [{ createdBy: req.user.id }, { assignedTo: req.user.id }],
-      },
-    });
+    const task = await Task.findOneByIdAndUser(id, req.user.id);
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
@@ -88,12 +76,7 @@ const updateTask = async (req, res, next) => {
   const { title, description, status, priority, due_date } = req.body;
 
   try {
-    const existingTask = await Task.findOne({
-      where: {
-        id,
-        createdBy: req.user.id,
-      },
-    });
+    const existingTask = await Task.findOneByIdAndCreator(id, req.user.id);
 
     if (!existingTask) {
       return res.status(404).json({ error: 'Task not found' });
@@ -111,19 +94,20 @@ const updateTask = async (req, res, next) => {
     }
 
     const normalizedDueDate =
-      due_date === '' ? null : (due_date ?? existingTask.dueDate);
+      due_date === '' ? null : (due_date ?? existingTask.due_date);
 
-    await existingTask.update({
+    const updatedTask = await Task.update(id, {
       title: title ?? existingTask.title,
       description: description ?? existingTask.description,
       status: status ?? existingTask.status,
       priority: priority ?? existingTask.priority,
-      dueDate: normalizedDueDate,
+      due_date: normalizedDueDate,
+      assigned_to: existingTask.assigned_to,
     });
 
     res.status(200).json({
       message: 'Task updated successfully',
-      task: existingTask,
+      task: updatedTask,
     });
   } catch (err) {
     return next(err);
@@ -134,14 +118,9 @@ const deleteTask = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const result = await Task.destroy({
-      where: {
-        id,
-        createdBy: req.user.id,
-      },
-    });
+    const rowCount = await Task.destroy(id, req.user.id);
 
-    if (!result) {
+    if (!rowCount) {
       return res.status(404).json({ error: 'Task not found' });
     }
 

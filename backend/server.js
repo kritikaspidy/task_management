@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const { sequelize } = require('./models');
+const pool = require('./db');
 const apiRoutes = require('./routes/api');
 const authRoutes = require('./routes/authroutes');
 const adminRoutes = require('./routes/adminroutes');
@@ -14,11 +14,11 @@ app.use(express.json());
 
 const port = process.env.PORT || 5000;
 
-app.get('/', async (req, res) => {
+app.get('/', (req, res) => {
   res.json({
-    challenge: "Complete the Authentication Flow",
+    challenge: 'Complete the Authentication Flow',
     instruction:
-      "Complete the authentication flow and obtain a valid access token.",
+      'Complete the authentication flow and obtain a valid access token.',
   });
 });
 
@@ -30,13 +30,13 @@ app.use(errorHandler);
 
 const startServer = async () => {
   try {
-    await sequelize.authenticate();
-    await sequelize.sync();
+    await pool.query('SELECT 1');
+    console.log('Database connected successfully');
     app.listen(port, () => {
       console.log(`Server is running on port ${port}`);
     });
   } catch (err) {
-    console.error('Failed to connect database:', err.message);
+    console.error('Failed to connect to database:', err.message);
     process.exit(1);
   }
 };

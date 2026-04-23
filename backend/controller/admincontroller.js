@@ -2,10 +2,7 @@ const { User, Task } = require('../models');
 
 const getAllUsers = async (req, res, next) => {
   try {
-    const users = await User.findAll({
-      attributes: ['id', 'username', 'role'],
-      order: [['id', 'DESC']],
-    });
+    const users = await User.findAll();
 
     res.status(200).json({
       message: 'Users fetched successfully',
@@ -18,9 +15,7 @@ const getAllUsers = async (req, res, next) => {
 
 const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'role'],
-    });
+    const user = await User.findById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
@@ -37,15 +32,13 @@ const getUserById = async (req, res, next) => {
 
 const deleteUser = async (req, res, next) => {
   try {
-    const user = await User.findByPk(req.params.id, {
-      attributes: ['id', 'username', 'role'],
-    });
+    const user = await User.findById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    await user.destroy();
+    await User.destroy(req.params.id);
 
     res.status(200).json({
       message: 'User deleted successfully',
@@ -65,7 +58,7 @@ const createAdminTask = async (req, res, next) => {
     }
 
     if (assigned_to) {
-      const userCheck = await User.findByPk(assigned_to);
+      const userCheck = await User.findById(assigned_to);
       if (!userCheck) {
         return res.status(404).json({ error: 'Assigned user not found' });
       }
@@ -76,9 +69,9 @@ const createAdminTask = async (req, res, next) => {
       description: description || null,
       status: status || 'pending',
       priority: priority || 'medium',
-      dueDate: due_date || null,
-      createdBy: req.user.id,
-      assignedTo: assigned_to || null,
+      due_date: due_date || null,
+      created_by: req.user.id,
+      assigned_to: assigned_to || null,
     });
 
     res.status(201).json({
@@ -92,9 +85,7 @@ const createAdminTask = async (req, res, next) => {
 
 const getAllTasksAdmin = async (req, res, next) => {
   try {
-    const tasks = await Task.findAll({
-      order: [['createdAt', 'DESC']],
-    });
+    const tasks = await Task.findAll({ orderBy: 'created_at', order: 'DESC' });
 
     res.status(200).json({
       message: 'All tasks fetched successfully',
@@ -107,7 +98,7 @@ const getAllTasksAdmin = async (req, res, next) => {
 
 const getTaskByIdAdmin = async (req, res, next) => {
   try {
-    const task = await Task.findByPk(req.params.id);
+    const task = await Task.findById(req.params.id);
 
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
@@ -126,31 +117,31 @@ const updateTaskAdmin = async (req, res, next) => {
   const { title, description, status, priority, due_date, assigned_to } = req.body;
 
   try {
-    const existingTask = await Task.findByPk(req.params.id);
+    const existingTask = await Task.findById(req.params.id);
 
     if (!existingTask) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
     if (assigned_to) {
-      const userCheck = await User.findByPk(assigned_to);
+      const userCheck = await User.findById(assigned_to);
       if (!userCheck) {
         return res.status(404).json({ error: 'Assigned user not found' });
       }
     }
 
-    await existingTask.update({
+    const updatedTask = await Task.update(req.params.id, {
       title: title ?? existingTask.title,
       description: description ?? existingTask.description,
       status: status ?? existingTask.status,
       priority: priority ?? existingTask.priority,
-      dueDate: due_date ?? existingTask.dueDate,
-      assignedTo: assigned_to ?? existingTask.assignedTo,
+      due_date: due_date ?? existingTask.due_date,
+      assigned_to: assigned_to ?? existingTask.assigned_to,
     });
 
     res.status(200).json({
       message: 'Task updated successfully',
-      task: existingTask,
+      task: updatedTask,
     });
   } catch (err) {
     return next(err);
@@ -159,11 +150,9 @@ const updateTaskAdmin = async (req, res, next) => {
 
 const deleteTaskAdmin = async (req, res, next) => {
   try {
-    const result = await Task.destroy({
-      where: { id: req.params.id },
-    });
+    const rowCount = await Task.destroy(req.params.id);
 
-    if (!result) {
+    if (!rowCount) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
@@ -183,23 +172,28 @@ const assignTaskToUser = async (req, res, next) => {
       return res.status(400).json({ error: 'assigned_to is required' });
     }
 
-    const taskCheck = await Task.findByPk(req.params.id);
-    if (!taskCheck) {
+    const existingTask = await Task.findById(req.params.id);
+    if (!existingTask) {
       return res.status(404).json({ error: 'Task not found' });
     }
 
-    const userCheck = await User.findByPk(assigned_to);
+    const userCheck = await User.findById(assigned_to);
     if (!userCheck) {
       return res.status(404).json({ error: 'Assigned user not found' });
     }
 
-    await taskCheck.update({
-      assignedTo: assigned_to,
+    const updatedTask = await Task.update(req.params.id, {
+      title: existingTask.title,
+      description: existingTask.description,
+      status: existingTask.status,
+      priority: existingTask.priority,
+      due_date: existingTask.due_date,
+      assigned_to,
     });
 
     res.status(200).json({
       message: 'Task assigned successfully',
-      task: taskCheck,
+      task: updatedTask,
     });
   } catch (err) {
     return next(err);
